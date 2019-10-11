@@ -26,12 +26,52 @@ class packet:
 
 
 metadata_len = 73
-packet_len = 5
+packet_len = 10
+all_len = metadata_len + packet_len
+EXIT_STR = 'exit'
 
 
 class SizeIsZeroException(Exception):
     def __init__(self, msg):
         super(SizeIsZeroException, self).__init__(msg)
+
+
+def get_ip(default_ip='0.0.0.0'):
+    import re
+
+    ip_repx = re.compile(r'^((2([0-4]\d|5[0-5])|[0-1]?\d{1,2})\.){3}(2([0-4]\d|5[0-5])|[0-1]?\d{1,2})$')
+
+    while True:
+        tmp_host = raw_input('please input server ip.(default [%s]): ' % default_ip)
+        if len(tmp_host) == 0:
+            return default_ip
+        if tmp_host == EXIT_STR:
+            exit(0)
+
+        ret = ip_repx.match(tmp_host)
+        if ret is None:
+            print "invalid ip address."
+        else:
+            return ret.group()
+
+
+def get_port(default_port=9001):
+    import re
+
+    port_repx = re.compile(r'(([1-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-6]))))|[8-9]\d{3})$')
+
+    while True:
+        tmp_port = raw_input('please input server port.(8000~65536, default [%d]): ' % default_port)
+        if len(tmp_port) == 0:
+            return default_port
+        if tmp_port == EXIT_STR:
+            exit(0)
+
+        ret = port_repx.match(tmp_port)
+        if ret is None:
+            print "invalid port."
+        else:
+            return int(ret.group())
 
 
 def file_pieces(file_size, piece_size):
@@ -60,7 +100,11 @@ def send_data(client, data):
             pack = packet(total_size, pieces, i, data[(i - 1) * packet_len:])
         else:
             pack = packet(total_size, pieces, i, data[(i - 1) * packet_len:i * packet_len])
-        client.sendall(repr(pack))
+        all_data = repr(pack)
+        print "send: %s" % all_data
+        send_len = client.send(all_data)
+        while send_len < len(all_data):
+            send_len += client.send(all_data[send_len:])
 
     return 0
 
@@ -75,7 +119,14 @@ def recv_data(client):
     tmp_size = 0
     disorder_data = dict()
 
-    recv_info = client.recv(packet_len + metadata_len)
+    recv_info = client.recv(all_len)
+    while len(recv_info) < metadata_len:
+        recv_info += client.recv(all_len - len(recv_info))
+    print "recv: %s" % recv_info
+    # client stopped the connection
+    if recv_info == '':
+        return EXIT_STR
+
     tmp_data = recv_info[metadata_len:]
 
     metadata = json.loads(recv_info[0:metadata_len])
@@ -88,7 +139,15 @@ def recv_data(client):
     disorder_data[index] = tmp_data
 
     while tmp_size < total_size:
-        recv_info = client.recv(packet_len + metadata_len)
+        recv_info = client.recv(all_len)
+        while len(recv_info) < metadata_len:
+            recv_info += client.recv(all_len - len(recv_info))
+        print "recv: %s" % recv_info
+
+        # client stopped the connection
+        if recv_info == '':
+            return EXIT_STR
+
         tmp_data = recv_info[metadata_len:]
 
         metadata = json.loads(recv_info[0:metadata_len])

@@ -1,23 +1,28 @@
 import socket
+from transmission_protocol import get_ip
+from transmission_protocol import get_port
 from transmission_protocol import send_data
 from transmission_protocol import recv_data
+from transmission_protocol import EXIT_STR
 
+host_ip = get_ip()
+host_port = get_port()
 
-socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-socket.connect(('127.0.0.1', 9003))
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((host_ip, host_port))
 
 while True:
     data = raw_input("> ")
-    ret = send_data(socket, data)
+    ret = send_data(client, data)
     if ret == -1:
         continue
 
-    if str.strip(data) == 'exit':
-        socket.close()
+    if str.strip(data) == EXIT_STR:
+        client.close()
         exit(0)
 
-    ret_info = recv_data(socket)
+    ret_info = recv_data(client)
     print ret_info
-    if str.strip(ret_info) == 'exit':
-        socket.close()
+    if str.strip(ret_info) == EXIT_STR:
+        client.close()
         exit(0)
