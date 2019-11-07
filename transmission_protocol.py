@@ -1,4 +1,5 @@
 import json
+import re
 
 
 class packet:
@@ -29,6 +30,7 @@ metadata_len = 73
 packet_len = 10
 all_len = metadata_len + packet_len
 EXIT_STR = 'exit'
+DUBUG = False
 
 
 class SizeIsZeroException(Exception):
@@ -37,8 +39,6 @@ class SizeIsZeroException(Exception):
 
 
 def get_ip(default_ip='0.0.0.0'):
-    import re
-
     ip_repx = re.compile(r'^((2([0-4]\d|5[0-5])|[0-1]?\d{1,2})\.){3}(2([0-4]\d|5[0-5])|[0-1]?\d{1,2})$')
 
     while True:
@@ -56,8 +56,6 @@ def get_ip(default_ip='0.0.0.0'):
 
 
 def get_port(default_port=9001):
-    import re
-
     port_repx = re.compile(r'(([1-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-6]))))|[8-9]\d{3})$')
 
     while True:
@@ -101,7 +99,8 @@ def send_data(client, data):
         else:
             pack = packet(total_size, pieces, i, data[(i - 1) * packet_len:i * packet_len])
         all_data = repr(pack)
-        print "send: %s" % all_data
+        if DUBUG:
+            print "send: %s" % all_data
         send_len = client.send(all_data)
         while send_len < len(all_data):
             send_len += client.send(all_data[send_len:])
@@ -122,7 +121,8 @@ def recv_data(client):
     recv_info = client.recv(all_len)
     while len(recv_info) < metadata_len:
         recv_info += client.recv(all_len - len(recv_info))
-    print "recv: %s" % recv_info
+    if DUBUG:
+        print "recv: %s" % recv_info
     # client stopped the connection
     if recv_info == '':
         return EXIT_STR
@@ -142,7 +142,8 @@ def recv_data(client):
         recv_info = client.recv(all_len)
         while len(recv_info) < metadata_len:
             recv_info += client.recv(all_len - len(recv_info))
-        print "recv: %s" % recv_info
+            if DUBUG:
+                print "recv: %s" % recv_info
 
         # client stopped the connection
         if recv_info == '':
