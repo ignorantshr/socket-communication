@@ -1,15 +1,17 @@
+#!/bin/python
+
 import socket
-from transmission_protocol import get_ip
-from transmission_protocol import get_port
-from transmission_protocol import send_data
-from transmission_protocol import recv_data
-from transmission_protocol import EXIT_STR
+
+from protocol.transmission_protocol import *
 
 host_ip = get_ip()
 host_port = get_port()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((host_ip, host_port))
+try:
+    client.connect((host_ip, host_port))
+except Exception as e:
+    print e.message
 
 while True:
     data = raw_input("> ")
@@ -17,7 +19,7 @@ while True:
     if ret == -1:
         continue
 
-    if str.strip(data) == EXIT_STR:
+    if str.strip(data) in (EXIT_STR, EXIT_ALL_STR):
         client.close()
         exit(0)
 
