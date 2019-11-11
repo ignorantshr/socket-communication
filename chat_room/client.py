@@ -1,8 +1,14 @@
 #!/bin/python
 
-import socket
+import threading
 
 from protocol import *
+
+
+def _receive_message(client_socket):
+    while True:
+        receive_message = recv_data(client_socket)
+        print receive_message
 
 host_ip = get_ip()
 host_port = get_port()
@@ -14,6 +20,10 @@ except Exception as e:
     print e.message
     exit(1)
 
+receive_t = threading.Thread(target=_receive_message, args=(client,))
+receive_t.setDaemon(True)
+receive_t.start()
+
 while True:
     data = raw_input("> ")
     ret = send_data(client, data)
@@ -21,11 +31,5 @@ while True:
         continue
 
     if str.strip(data) in (EXIT_STR, EXIT_ALL_STR):
-        client.close()
-        exit(0)
-
-    ret_info = recv_data(client)
-    print ret_info
-    if str.strip(ret_info) == EXIT_STR:
         client.close()
         exit(0)

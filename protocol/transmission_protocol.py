@@ -13,7 +13,7 @@ packet_len = 10  # <= MAX_DATA_LEN
 all_len = metadata_len + packet_len
 EXIT_STR = 'exit'
 EXIT_ALL_STR = 'exit_all'
-LOG_LEVEL = WARN
+LOG_LEVEL = INFO
 
 # These values can only be adjusted down
 MAX_FILE_INDEX = 1024
@@ -130,10 +130,12 @@ def send_data(client, data):
         else:
             pack = _DataPacket(total_size, i, data[(i - 1) * packet_len:i * packet_len])
         all_data = repr(pack)
-        log_communication(DEBUG, "send: %s" % all_data)
+        log_communication(DEBUG, "send to %s: %s" % (client.getpeername(), all_data))
         send_len = client.send(all_data)
+        log_communication(DEBUG, "send_len = %d" % send_len)
         while send_len < len(all_data):
             send_len += client.send(all_data[send_len:])
+            log_communication(DEBUG, "send_len = %d" % send_len)
 
     return 0
 
@@ -151,7 +153,7 @@ def recv_data(client):
     recv_info = client.recv(all_len)
     while len(recv_info) < metadata_len:
         recv_info += client.recv(all_len - len(recv_info))
-        log_communication(DEBUG, "recv: %s" % recv_info)
+        log_communication(DEBUG, "receive from %s : %s" % (client.getpeername(), recv_info))
     # client stopped the connection
     if recv_info == '':
         return EXIT_STR
@@ -171,7 +173,7 @@ def recv_data(client):
         recv_info = client.recv(all_len)
         while len(recv_info) < metadata_len:
             recv_info += client.recv(all_len - len(recv_info))
-            log_communication(DEBUG, "recv: %s" % recv_info)
+            log_communication(DEBUG, "receive from %s : %s" % (client.getpeername(), recv_info))
 
         # client stopped the connection
         if recv_info == '':

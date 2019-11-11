@@ -6,6 +6,7 @@ from protocol import *
 
 event = threading.Event()
 threads = []
+clients = []
 
 
 def init():
@@ -20,7 +21,7 @@ def init():
     thread_dispatcher.setDaemon(True)
     thread_dispatcher.start()
 
-    print "server is ready to accept client."
+    log_communication(INFO, "server is ready to accept client.")
 
     event.wait()
 
@@ -36,10 +37,11 @@ def init():
 def client_dispatcher(server_socket):
     while not event.isSet():
         cli, address = server_socket.accept()
-        print "accept client from %s" % repr(address)
+        print "%s has entered the chat room." % repr(address)
 
         thread = ServerThread(cli, address)
         threads.append(thread)
+        clients.append(cli)
         thread.start()
 
 
@@ -57,15 +59,24 @@ class ServerThread(threading.Thread):
             if str.strip(recv_info) == EXIT_STR:
                 self._cli_s.close()
                 threads.remove(self)
+                clients.remove(self._cli_s)
+                for cli in clients:
+                    send_data(cli, "%s has exited the chat room." % (self._cli_a,))
                 exit(0)
 
             if str.strip(recv_info) == EXIT_ALL_STR:
+                self._cli_s.close()
+                log_communication(INFO, "get close server signal.")
+                threads.remove(self)
+                clients.remove(self._cli_s)
+                for cli in clients:
+                    send_data(cli, "the chat room will be dissolved after all members exit.")
                 event.set()
-                print "get close server signal."
                 exit(0)
 
-            data = "server: %s" % recv_info
-            send_data(self._cli_s, data)
-
+            for cli in clients:
+                if cli is not self._cli_s:
+                    data = "%s: %s" % (self._cli_a, recv_info)
+                    send_data(cli, data)
 
 init()
