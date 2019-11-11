@@ -2,7 +2,7 @@
 
 import socket
 
-from protocol.transmission_protocol import *
+from protocol import *
 
 host_ip = get_ip()
 host_port = get_port()

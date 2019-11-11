@@ -3,7 +3,7 @@
 import socket
 import threading
 
-from protocol.transmission_protocol import *
+from protocol import *
 
 event = threading.Event()
 threads = []

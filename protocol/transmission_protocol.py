@@ -8,12 +8,17 @@ INFO = 2
 WARN = 3
 ERROR = 4
 
-metadata_len = 73
-packet_len = 10
+metadata_len = 56  # Generate values base metadata template
+packet_len = 10  # <= MAX_DATA_LEN
 all_len = metadata_len + packet_len
 EXIT_STR = 'exit'
 EXIT_ALL_STR = 'exit_all'
 LOG_LEVEL = WARN
+
+# These values can only be adjusted down
+MAX_FILE_INDEX = 1024
+MAX_DATA_LEN = 1024
+MAX_TOTAL_SIZE = MAX_FILE_INDEX * MAX_DATA_LEN
 
 
 def log_communication(level, message):
@@ -60,27 +65,42 @@ def get_port(default_port=9002):
 
 
 class _DataPacket:
-    def __init__(self, total_size, file_counts, file_index, data):
+    def __init__(self, total_size, file_index, data):
         """
         initial packet
         :param total_size: total size of file
-        :param file_counts: total counts of file pieces
         :param file_index: index of files
         :param data: one of file pieces
         """
         # data = data.encode('utf-8')
-        self._total_size = total_size
-        self._file_counts = file_counts
-        self._file_index = file_index
-        self._data_len = len(data)
+        self._total_size = total_size  # <= 1024 * 1024
+        self._file_index = file_index  # <= 1024
+        self._data_len = len(data)  # <= 1024
         self._data = data
 
+        self._check_args()
+
+    def _check_args(self):
+        if type(self._total_size) is not int:
+            raise TypeError("total_size is not int.")
+        elif self._total_size > MAX_TOTAL_SIZE:
+            raise OutOfBoundsException("total_size greater than %d" % MAX_TOTAL_SIZE)
+
+        if type(self._file_index) is not int:
+            raise TypeError("file_index is not int.")
+        elif self._file_index > MAX_FILE_INDEX:
+            raise OutOfBoundsException("file_index greater than %d" % MAX_FILE_INDEX)
+
+        if type(self._data_len) is not int:
+            raise TypeError("data_len is not int.")
+        elif self._data_len > MAX_DATA_LEN:
+            raise OutOfBoundsException("data_len greater than %d" % MAX_DATA_LEN)
+
     def __repr__(self):
-        return '{"total_size": %5d, "counts": %5d, "index": %5d, "data_len": %5d}%s' % (self._total_size,
-                                                                                        self._file_counts,
-                                                                                        self._file_index,
-                                                                                        self._data_len,
-                                                                                        self._data)
+        return '{"total_size": %7d, "index": %4d, "data_len": %4d}%s' % (self._total_size,
+                                                                         self._file_index,
+                                                                         self._data_len,
+                                                                         self._data)
 
 
 def _data_pieces(data_size, piece_size):
@@ -106,9 +126,9 @@ def send_data(client, data):
         return -1
     for i in range(1, pieces + 1):
         if i == pieces:
-            pack = _DataPacket(total_size, pieces, i, data[(i - 1) * packet_len:])
+            pack = _DataPacket(total_size, i, data[(i - 1) * packet_len:])
         else:
-            pack = _DataPacket(total_size, pieces, i, data[(i - 1) * packet_len:i * packet_len])
+            pack = _DataPacket(total_size, i, data[(i - 1) * packet_len:i * packet_len])
         all_data = repr(pack)
         log_communication(DEBUG, "send: %s" % all_data)
         send_len = client.send(all_data)
