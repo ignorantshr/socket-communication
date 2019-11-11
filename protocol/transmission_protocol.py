@@ -28,7 +28,7 @@ def get_ip(default_ip='0.0.0.0'):
     ip_repx = re.compile(r'^((2([0-4]\d|5[0-5])|[0-1]?\d{1,2})\.){3}(2([0-4]\d|5[0-5])|[0-1]?\d{1,2})$')
 
     while True:
-        tmp_host = raw_input('please input server ip.(default [%s]): ' % default_ip)
+        tmp_host = raw_input('please input server ip(default [%s]) or [%s] to exit: ' % (default_ip, EXIT_STR))
         if len(tmp_host) == 0:
             return default_ip
         if tmp_host == EXIT_STR:
@@ -45,7 +45,8 @@ def get_port(default_port=9002):
     port_repx = re.compile(r'(([1-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-6]))))|[8-9]\d{3})$')
 
     while True:
-        tmp_port = raw_input('please input server port.(8000~65536, default [%d]): ' % default_port)
+        tmp_port = raw_input('please input server port(8000~65536, default [%d]) or [%s] to exit: : ' %
+                             (default_port, EXIT_STR))
         if len(tmp_port) == 0:
             return default_port
         if tmp_port == EXIT_STR:
