@@ -24,7 +24,7 @@ while True:
         client.close()
         exit(0)
 
-    ret_info = recv_data(client)
+    _, ret_info = recv_data(client)
     print ret_info
     if str.strip(ret_info) == EXIT_STR:
         client.close()

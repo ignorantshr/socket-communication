@@ -1,5 +1,5 @@
 #!/bin/python
-
+import ast
 import threading
 
 from protocol import *
@@ -13,6 +13,7 @@ def init():
     host_port = get_port()
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # reuse port
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((host_ip, host_port))
     server_socket.listen(2)
@@ -52,22 +53,31 @@ class ServerThread(threading.Thread):
         self._cli_a = client_addr
 
     def run(self):
-        while True:
-            _, recv_info = recv_data(self._cli_s)
-            log_communication(MUST, "received from %s: %s" % (self._cli_a, recv_info))
+        _, recv_info = recv_data(self._cli_s)
+        # str -> dict
+        file_info = ast.literal_eval(recv_info)
+        name = file_info.get('file')
+        size = file_info.get('size')
+        if name == EXIT_ALL_STR:
+            log_communication(MUST, "get close server signal.")
+            event.set()
+            exit(0)
 
-            if str.strip(recv_info) == EXIT_STR:
-                self._cli_s.close()
-                threads.remove(self)
-                exit(0)
+        time_stamp = time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
+        name = name + '_' + time_stamp + '.transfer'
+        log_communication(MUST, "prepare receive: %s %d", name, size)
 
-            if str.strip(recv_info) == EXIT_ALL_STR:
-                event.set()
-                log_communication(MUST, "get close server signal.")
-                exit(0)
-
-            data = "server: %s" % recv_info
-            send_data(self._cli_s, data)
-
+        received_len = 0
+        with open(name, mode='w+') as f:
+            while received_len < size:
+                tmp_len, recv_info = recv_data(self._cli_s)
+                if tmp_len == 0 or len(recv_info) == 0:
+                    log_communication(WARN, 'The client has closed the socket.')
+                    break
+                received_len += tmp_len
+                f.write(recv_info)
+        log_communication(MUST, 'The file %s has been received[%d].' % (name, received_len))
+        self._cli_s.close()
+        exit(0)
 
 init()

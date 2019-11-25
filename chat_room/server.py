@@ -14,14 +14,16 @@ def init():
     host_port = get_port()
 
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_socket.bind((host_ip, host_port))
     server_socket.listen(2)
 
     thread_dispatcher = threading.Thread(target=client_dispatcher, args=(server_socket,))
+    # quit with main program
     thread_dispatcher.setDaemon(True)
     thread_dispatcher.start()
 
-    log_communication(INFO, "server is ready to accept client.")
+    log_communication(MUST, "server is ready to accept client.")
 
     event.wait()
 
@@ -37,12 +39,15 @@ def init():
 def client_dispatcher(server_socket):
     while not event.isSet():
         cli, address = server_socket.accept()
-        print "%s has entered the chat room." % repr(address)
+        log_communication(MUST, "accept client from %s" % repr(address))
 
         thread = ServerThread(cli, address)
         threads.append(thread)
         clients.append(cli)
         thread.start()
+        for client in clients:
+            data = "%s has entered the chat room." % (repr(address),)
+            send_data(client, data)
 
 
 class ServerThread(threading.Thread):
@@ -53,8 +58,8 @@ class ServerThread(threading.Thread):
 
     def run(self):
         while True:
-            recv_info = recv_data(self._cli_s)
-            print "received from %s: %s" % (self._cli_a, recv_info)
+            _, recv_info = recv_data(self._cli_s)
+            log_communication(MUST, "received from %s: %s" % (self._cli_a, recv_info))
 
             if str.strip(recv_info) == EXIT_STR:
                 self._cli_s.close()
@@ -66,7 +71,7 @@ class ServerThread(threading.Thread):
 
             if str.strip(recv_info) == EXIT_ALL_STR:
                 self._cli_s.close()
-                log_communication(INFO, "get close server signal.")
+                log_communication(MUST, "get close server signal.")
                 threads.remove(self)
                 clients.remove(self._cli_s)
                 for cli in clients:

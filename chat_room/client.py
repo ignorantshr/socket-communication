@@ -7,7 +7,7 @@ from protocol import *
 
 def _receive_message(client_socket):
     while True:
-        receive_message = recv_data(client_socket)
+        _, receive_message = recv_data(client_socket)
         print receive_message
 
 host_ip = get_ip()
@@ -21,6 +21,7 @@ except Exception as e:
     exit(1)
 
 receive_t = threading.Thread(target=_receive_message, args=(client,))
+# quit with main program
 receive_t.setDaemon(True)
 receive_t.start()
 
