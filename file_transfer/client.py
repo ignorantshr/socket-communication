@@ -3,7 +3,7 @@ import commands
 import os
 from time import sleep
 
-from protocol import *
+from communication.protocol import *
 
 
 def _send_file():
@@ -27,11 +27,12 @@ def _send_file():
 
 def _exit_server():
     send_data(client, '{"file": "%s", "size": %d}' % (EXIT_ALL_STR, 0))
+    log_communication(MUST, 'close server signal has been sent.')
 
 
 def _get_file_path():
     while True:
-        source_path = raw_input('please input the source path: ')
+        source_path = raw_input("please input the file's absolute path or %s to close the server: " % EXIT_ALL_STR)
         if len(source_path) == 0:
             print 'the path is invalid!'
             continue

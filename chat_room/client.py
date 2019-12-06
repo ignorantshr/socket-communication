@@ -2,7 +2,7 @@
 
 import threading
 
-from protocol import *
+from communication.protocol import *
 
 
 def _receive_message(client_socket):

@@ -2,7 +2,7 @@
 
 import threading
 
-from protocol import *
+from communication.protocol import *
 
 event = threading.Event()
 threads = []

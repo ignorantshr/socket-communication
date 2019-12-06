@@ -1,8 +1,6 @@
 #!/bin/python
 
-import socket
-
-from protocol import *
+from communication.protocol import *
 
 host_ip = get_ip()
 host_port = get_port()
