@@ -18,6 +18,7 @@ LOG_LEVELS = {
     5: 'MUST'}
 
 LOG_LEVEL = INFO
+print 'LOG_LEVEL=', LOG_LEVELS[LOG_LEVEL]
 
 # meta info
 TOTAL_SIZE = "total_size"  # %8d
@@ -225,6 +226,7 @@ def recv_data(client):
     while True:
         # first get the metadata
         recv_info = client.recv(metadata_len)
+        log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), recv_info))
         # the client closed the connection
         if len(recv_info) == 0:
             break
@@ -239,8 +241,10 @@ def recv_data(client):
         data_len = metadata.get(DATA_LEN, 0)
         # then get the real data
         tmp_data = client.recv(data_len)
+        log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), tmp_data))
         while len(tmp_data) < data_len:
             tmp_data += client.recv(data_len - len(tmp_data))
+            log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), tmp_data))
         disorder_data[index] = tmp_data
         tmp_size += data_len
 

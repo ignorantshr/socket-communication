@@ -62,6 +62,7 @@ class ServerThread(threading.Thread):
                 exit(0)
 
             if str.strip(recv_info) == EXIT_ALL_STR:
+                self._cli_s.close()
                 event.set()
                 log_communication(MUST, "get close server signal.")
                 exit(0)
