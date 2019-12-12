@@ -1,4 +1,5 @@
 #!/bin/python
+# coding=utf-8
 
 import threading
 from communication.protocol import *
@@ -53,9 +54,10 @@ class RecvThread(threading.Thread):
         self._ser_n = ser_name
 
     def run(self):
+        # 中文
         while True:
             _, recv_info = recv_data(self._cli_s)
-            print "%s >>>\n%s\n<<<\n" % (self._ser_n, recv_info)
+            print "%s >>>\n%s\n<<<\n" % (self._ser_n, recv_info.decode('utf-8'))
 
             if str.strip(recv_info) in (EXIT_STR, EXIT_ALL_STR):
                 event.set()
@@ -70,7 +72,7 @@ class SendThread(threading.Thread):
     def run(self):
         while True:
             data = raw_input("> ")
-            ret = send_data(self._cli_s, data)
+            ret = send_data(self._cli_s, data.decode('utf-8').encode('utf-8'))
             if ret == -1:
                 continue
 

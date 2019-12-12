@@ -1,8 +1,14 @@
 #!/bin/python
+# coding=utf-8
 
 import threading
+import sys
 
 from communication.protocol import *
+
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 
 
 def _receive_message(client_socket):
