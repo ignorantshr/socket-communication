@@ -26,7 +26,7 @@ def init():
 
     cli, address = server_socket.accept()
     log_communication(MUST, "accept client from %s" % repr(address))
-    cli_name = _exchange_name(cli, ser_name)
+    cli_name = _exchange_name(cli, ser_name.decode('utf-8').encode('utf-8'))
 
     recv_t = RecvThread(cli, cli_name)
     recv_t.setDaemon(True)

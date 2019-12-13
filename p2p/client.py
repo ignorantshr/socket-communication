@@ -40,10 +40,10 @@ def _exchange_name(cli):
         cli_name = raw_input("your name: ")
         if len(cli_name) == 0:
             continue
-        send_data(cli, '{"name": "%s"}' % cli_name)
+        send_data(cli, '{"name": "%s"}' % cli_name.decode('utf-8').encode('utf-8'))
         break
-    _, ser_name = recv_data(cli)
-    ser_name = json.loads(ser_name).get("name")
+    _, ser_name = recv_data(cli)                    # str
+    ser_name = json.loads(ser_name).get("name")     # unicode
     return ser_name
 
 
@@ -54,9 +54,8 @@ class RecvThread(threading.Thread):
         self._ser_n = ser_name
 
     def run(self):
-        # 中文
         while True:
-            _, recv_info = recv_data(self._cli_s)
+            _, recv_info = recv_data(self._cli_s)   # str
             print "%s >>>\n%s\n<<<\n" % (self._ser_n, recv_info.decode('utf-8'))
 
             if str.strip(recv_info) in (EXIT_STR, EXIT_ALL_STR):
