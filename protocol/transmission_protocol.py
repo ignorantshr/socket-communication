@@ -80,10 +80,14 @@ MAX_TOTAL_SIZE = min(packet_len * MAX_FILE_INDEX, 99999999)  # %8d
 def log_communication(level, format_str, *args):
     def _display():
         if len(args) == 0:
-            print "%s [%5s]: %s" % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), LOG_LEVELS[level],
+            print "%s [%5s]: %s" % (time.strftime('%Y-%m-%d %H:%M:%S',
+                                                  time.localtime(time.time())),
+                                    LOG_LEVELS[level],
                                     format_str)
         else:
-            print "%s [%5s]: %s" % (time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())), LOG_LEVELS[level],
+            print "%s [%5s]: %s" % (time.strftime('%Y-%m-%d %H:%M:%S',
+                                                  time.localtime(time.time())),
+                                    LOG_LEVELS[level],
                                     format_str % args)
 
     def _log_to_file():
@@ -94,10 +98,12 @@ def log_communication(level, format_str, *args):
 
 
 def get_ip(default_ip='0.0.0.0'):
-    ip_repx = re.compile(r'^((2([0-4]\d|5[0-5])|[0-1]?\d{1,2})\.){3}(2([0-4]\d|5[0-5])|[0-1]?\d{1,2})$')
+    ip_repx = re.compile(r'^((2([0-4]\d|5[0-5])|[0-1]?\d{1,2})\.){3}'
+                         r'(2([0-4]\d|5[0-5])|[0-1]?\d{1,2})$')
 
     while True:
-        tmp_host = raw_input('please input server ip(default [%s]) or [%s] to exit(any of the following steps can be): '
+        tmp_host = raw_input('please input server ip(default [%s]) or [%s] '
+                             'to exit(any of the following steps can be): '
                              '' % (default_ip, EXIT_STR))
         if len(tmp_host) == 0:
             return default_ip
@@ -112,11 +118,12 @@ def get_ip(default_ip='0.0.0.0'):
 
 
 def get_port(default_port=9002):
-    port_repx = re.compile(r'(([1-5]\d{4}|6([0-4]\d{3}|5([0-4]\d{2}|5([0-2]\d|3[0-6]))))|[8-9]\d{3})$')
+    # 1000~9999
+    port_repx = re.compile(r'([1-9]\d{3})$')
 
     while True:
-        tmp_port = raw_input('please input server port(8000~65536, default [%d]): ' %
-                             (default_port))
+        tmp_port = raw_input('please input server port(8000~65536, '
+                             'default [%d]): ' % default_port)
         if len(tmp_port) == 0:
             return default_port
         if tmp_port == EXIT_STR:
@@ -150,17 +157,20 @@ class _DataPacket:
         if type(self._total_size) is not int:
             raise TypeError("total_size is not int.")
         elif self._total_size > MAX_TOTAL_SIZE:
-            raise OutOfBoundsException("total_size greater than %d" % MAX_TOTAL_SIZE)
+            raise OutOfBoundsException("total_size greater than %d" %
+                                       MAX_TOTAL_SIZE)
 
         if type(self._file_index) is not int:
             raise TypeError("file_index is not int.")
         elif self._file_index > MAX_FILE_INDEX:
-            raise OutOfBoundsException("file_index greater than %d" % MAX_FILE_INDEX)
+            raise OutOfBoundsException("file_index greater than %d" %
+                                       MAX_FILE_INDEX)
 
         if type(self._data_len) is not int:
             raise TypeError("data_len is not int.")
         elif self._data_len > MAX_DATA_LEN:
-            raise OutOfBoundsException("data_len greater than %d" % MAX_DATA_LEN)
+            raise OutOfBoundsException("data_len greater than %d" %
+                                       MAX_DATA_LEN)
 
     def __repr__(self):
         return self._template % (TOTAL_SIZE, self._total_size,
@@ -175,7 +185,8 @@ def _data_pieces(data_size, piece_size):
     if piece_size == 0:
         raise PieceSizeZeroException("piece_size cann't be 0.")
     pieces = (data_size + piece_size - 1) / piece_size
-    log_communication(DEBUG, "%d data will be split into %d pieces." % (data_size, pieces))
+    log_communication(DEBUG, "%d data will be split into %d pieces." %
+                      (data_size, pieces))
     return pieces
 
 
@@ -199,9 +210,11 @@ def send_data(client, data):
         if i == pieces:
             pack = _DataPacket(total_size, i, data[(i - 1) * packet_len:])
         else:
-            pack = _DataPacket(total_size, i, data[(i - 1) * packet_len:i * packet_len])
+            pack = _DataPacket(total_size, i,
+                               data[(i - 1) * packet_len:i * packet_len])
         all_data = repr(pack)
-        log_communication(DEBUG, "send to %s: %s" % (client.getpeername(), all_data))
+        log_communication(DEBUG, "send to %s: %s" %
+                          (client.getpeername(), all_data))
         sent_len = client.send(all_data)
         log_communication(DEBUG, "send_len = %d" % sent_len)
         while sent_len < len(all_data):
@@ -226,13 +239,15 @@ def recv_data(client):
     while True:
         # first get the metadata
         recv_info = client.recv(metadata_len)
-        log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), recv_info))
+        log_communication(DEBUG, "received from %s : %s" %
+                          (client.getpeername(), recv_info))
         # the client closed the connection
         if len(recv_info) == 0:
             break
         while len(recv_info) < metadata_len:
             recv_info += client.recv(metadata_len - len(recv_info))
-            log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), recv_info))
+            log_communication(DEBUG, "received from %s : %s" %
+                              (client.getpeername(), recv_info))
         metadata = json.loads(recv_info)
         total_size = metadata.get(TOTAL_SIZE, 0)
         if total_size == 0:
@@ -241,10 +256,12 @@ def recv_data(client):
         data_len = metadata.get(DATA_LEN, 0)
         # then get the real data
         tmp_data = client.recv(data_len)
-        log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), tmp_data))
+        log_communication(DEBUG, "received from %s : %s" %
+                          (client.getpeername(), tmp_data))
         while len(tmp_data) < data_len:
             tmp_data += client.recv(data_len - len(tmp_data))
-            log_communication(DEBUG, "received from %s : %s" % (client.getpeername(), tmp_data))
+            log_communication(DEBUG, "received from %s : %s" %
+                              (client.getpeername(), tmp_data))
         disorder_data[index] = tmp_data
         tmp_size += data_len
 

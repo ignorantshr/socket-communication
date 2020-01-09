@@ -57,7 +57,8 @@ class RecvThread(threading.Thread):
     def run(self):
         while True:
             _, recv_info = recv_data(self._cli_s)
-            print "%s >>>\n%s\n<<<\n" % (self._cli_n, recv_info.decode('utf-8'))
+            print "%s >>>\n%s\n<<<\n" % \
+                  (self._cli_n, recv_info.decode('utf-8'))
 
             if str.strip(recv_info) in (EXIT_STR, EXIT_ALL_STR):
                 self._cli_s.close()

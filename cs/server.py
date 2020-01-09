@@ -17,7 +17,8 @@ def init():
     server_socket.bind((host_ip, host_port))
     server_socket.listen(2)
 
-    thread_dispatcher = threading.Thread(target=client_dispatcher, args=(server_socket,))
+    thread_dispatcher = threading.Thread(target=client_dispatcher,
+                                         args=(server_socket,))
     # quit with main program
     thread_dispatcher.setDaemon(True)
     thread_dispatcher.start()
@@ -54,7 +55,8 @@ class ServerThread(threading.Thread):
     def run(self):
         while True:
             _, recv_info = recv_data(self._cli_s)
-            log_communication(MUST, "received from %s: %s" % (self._cli_a, recv_info))
+            log_communication(MUST, "received from %s: %s" %
+                              (self._cli_a, recv_info))
 
             if str.strip(recv_info) == EXIT_STR:
                 self._cli_s.close()

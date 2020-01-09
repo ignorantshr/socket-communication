@@ -15,7 +15,7 @@ def init():
     try:
         client.connect((host_ip, host_port))
     except Exception as e:
-        print e.message
+        print e
         exit(1)
 
     ser_name = _exchange_name(client)
@@ -40,7 +40,8 @@ def _exchange_name(cli):
         cli_name = raw_input("your name: ")
         if len(cli_name) == 0:
             continue
-        send_data(cli, '{"name": "%s"}' % cli_name.decode('utf-8').encode('utf-8'))
+        send_data(cli, '{"name": "%s"}' %
+                  cli_name.decode('utf-8').encode('utf-8'))
         break
     _, ser_name = recv_data(cli)                    # str
     ser_name = json.loads(ser_name).get("name")     # unicode
@@ -56,7 +57,8 @@ class RecvThread(threading.Thread):
     def run(self):
         while True:
             _, recv_info = recv_data(self._cli_s)   # str
-            print "%s >>>\n%s\n<<<\n" % (self._ser_n, recv_info.decode('utf-8'))
+            print "%s >>>\n%s\n<<<\n" % \
+                  (self._ser_n, recv_info.decode('utf-8'))
 
             if str.strip(recv_info) in (EXIT_STR, EXIT_ALL_STR):
                 event.set()

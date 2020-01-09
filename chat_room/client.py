@@ -10,7 +10,6 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 
 
-
 def _receive_message(client_socket):
     while True:
         _, receive_message = recv_data(client_socket)
@@ -23,7 +22,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client.connect((host_ip, host_port))
 except Exception as e:
-    print e.message
+    print e
     exit(1)
 
 receive_t = threading.Thread(target=_receive_message, args=(client,))

@@ -11,7 +11,8 @@ def _send_file():
     name = os.path.basename(src_path)
     sent_size = 0
     log_communication(MUST, 'file: %s, size: %d' % (src_path, size))
-    send_data(client, '{"file": "%s", "size": %d}' % (os.path.join(des_path, name), size))
+    send_data(client, '{"file": "%s", "size": %d}' %
+              (os.path.join(des_path, name), size))
 
     with open(src_path, mode='r') as f:
         while size - sent_size > 0:
@@ -20,9 +21,10 @@ def _send_file():
             if tmp_len == -1:
                 break
             sent_size += tmp_len
-            sleep(0.1)
+            # sleep(0.1)
 
-    log_communication(MUST, 'The file %s has been sent[%d].' % (name, sent_size))
+    log_communication(MUST, 'The file %s has been sent[%d].' %
+                      (name, sent_size))
 
 
 def _exit_server():
@@ -32,7 +34,8 @@ def _exit_server():
 
 def _get_file_path():
     while True:
-        source_path = raw_input("please input the file's absolute path or %s to close the server: " % EXIT_ALL_STR)
+        source_path = raw_input("please input the file's absolute path or %s "
+                                "to close the server: " % EXIT_ALL_STR)
         if len(source_path) == 0:
             print 'the path is invalid!'
             continue
@@ -64,7 +67,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client.connect((host_ip, host_port))
 except Exception as e:
-    print e.message
+    print e
     exit(1)
 
 if src_path != EXIT_ALL_STR:

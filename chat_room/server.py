@@ -24,7 +24,8 @@ def init():
     server_socket.bind((host_ip, host_port))
     server_socket.listen(2)
 
-    thread_dispatcher = threading.Thread(target=client_dispatcher, args=(server_socket,))
+    thread_dispatcher = threading.Thread(target=client_dispatcher,
+                                         args=(server_socket,))
     # quit with main program
     thread_dispatcher.setDaemon(True)
     thread_dispatcher.start()
@@ -65,14 +66,16 @@ class ServerThread(threading.Thread):
     def run(self):
         while True:
             _, recv_info = recv_data(self._cli_s)
-            log_communication(MUST, "received from %s: %s" % (self._cli_a, recv_info))
+            log_communication(MUST, "received from %s: %s" %
+                              (self._cli_a, recv_info))
 
             if str.strip(recv_info) == EXIT_STR:
                 self._cli_s.close()
                 threads.remove(self)
                 clients.remove(self._cli_s)
                 for cli in clients:
-                    send_data(cli, "%s has exited the chat room." % (self._cli_a,))
+                    send_data(cli, "%s has exited the chat room." %
+                              (self._cli_a,))
                 exit(0)
 
             if str.strip(recv_info) == EXIT_ALL_STR:
@@ -81,7 +84,8 @@ class ServerThread(threading.Thread):
                 threads.remove(self)
                 clients.remove(self._cli_s)
                 for cli in clients:
-                    send_data(cli, "the chat room will be dissolved after all members exit.")
+                    send_data(cli, "the chat room will be dissolved "
+                                   "after all members exit.")
                 event.set()
                 exit(0)
 

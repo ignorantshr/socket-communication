@@ -9,7 +9,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     client.connect((host_ip, host_port))
 except Exception as e:
-    print e.message
+    print e
     exit(1)
 
 while True:

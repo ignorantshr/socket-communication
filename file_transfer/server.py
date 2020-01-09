@@ -18,7 +18,8 @@ def init():
     server_socket.bind((host_ip, host_port))
     server_socket.listen(2)
 
-    thread_dispatcher = threading.Thread(target=client_dispatcher, args=(server_socket,))
+    thread_dispatcher = threading.Thread(target=client_dispatcher,
+                                         args=(server_socket,))
     # quit with main program
     thread_dispatcher.setDaemon(True)
     thread_dispatcher.start()
@@ -72,11 +73,13 @@ class ServerThread(threading.Thread):
             while received_len < size:
                 tmp_len, recv_info = recv_data(self._cli_s)
                 if tmp_len == 0 or len(recv_info) == 0:
-                    log_communication(WARN, 'The client has closed the socket.')
+                    log_communication(WARN,
+                                      'The client has closed the socket.')
                     break
                 received_len += tmp_len
                 f.write(recv_info)
-        log_communication(MUST, 'The file %s has been received[%d].' % (name, received_len))
+        log_communication(MUST, 'The file %s has been received[%d].' %
+                          (name, received_len))
         self._cli_s.close()
         exit(0)
 
